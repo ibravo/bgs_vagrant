@@ -91,16 +91,16 @@ workaround_vif_plugging: false
 openstack_packstack_rpm: http://REPLACE_ME/brewroot/packages/openstack-puppet-modules/2013.2/9.el6ost/noarch/openstack-puppet-modules-2013.2-9.el6ost.noarch.rpm
 nodes:
   compute:
-    name: oscompute11.opnfv.com
-    hostname: oscompute11.opnfv.com
+    name: oscompute11.hq.ltg
+    hostname: oscompute11.hq.ltg
     short_name: oscompute11
     type: compute
     host_type: baremetal
     hostgroup: Compute
-    mac_address: "01:23:45:67:89:AB"
-    bmc_ip: 10.4.17.2
-    bmc_mac: "01:23:45:67:88:AB"
-    bmc_user: root
+    mac_address: "00:21:5A:44:9A:94"
+    bmc_ip: 192.168.3.207
+    bmc_mac: "00:21:5A:43:AE:F8"
+    bmc_user: Administrator
     bmc_pass: root
     ansible_ssh_pass: "Op3nStack"
     admin_password: ""
@@ -111,19 +111,19 @@ nodes:
     - rdo
     - neutron
   controller1:
-    name: oscontroller1.opnfv.com
-    hostname: oscontroller1.opnfv.com
+    name: oscontroller1.hq.ltg
+    hostname: oscontroller1.hq.ltg
     short_name: oscontroller1
     type: controller
     host_type: baremetal
     hostgroup: Controller_Network_ODL
-    mac_address: "11:23:45:67:89:AC"
-    bmc_ip: 10.4.17.3
-    bmc_mac: "11:23:45:67:88:AC"
-    bmc_user: root
+    mac_address: "00:24:81:FC:5D:32"
+    bmc_ip: 192.168.3.204
+    bmc_mac: "00:24:81:FD:1A:14"
+    bmc_user: Administrator
     bmc_pass: root
     private_ip: controller1_private
-    private_mac: "11:23:45:67:87:AC"
+    private_mac: "00:24:81:FC:5D:34"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
     groups:
@@ -133,19 +133,19 @@ nodes:
     - rdo
     - neutron
   controller2:
-    name: oscontroller2.opnfv.com
-    hostname: oscontroller2.opnfv.com
+    name: oscontroller2.hq.ltg
+    hostname: oscontroller2.hq.ltg
     short_name: oscontroller2
     type: controller
     host_type: baremetal
     hostgroup: Controller_Network
-    mac_address: "11:23:45:67:89:AD"
-    bmc_ip: 10.4.17.4
-    bmc_mac: "11:23:45:67:88:AD"
-    bmc_user: root
+    mac_address: "00:26:55:1A:DB:0E"
+    bmc_ip: 192.168.3.205
+    bmc_mac: "00:26:55:19:C2:8A"
+    bmc_user: Administrator
     bmc_pass: root
     private_ip: controller2_private
-    private_mac: "11:23:45:67:87:AD"
+    private_mac: "00:26:55:1A:DB:10"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
     groups:
@@ -155,19 +155,19 @@ nodes:
     - rdo
     - neutron
   controller3:
-    name: oscontroller3.opnfv.com
-    hostname: oscontroller3.opnfv.com
+    name: oscontroller3.hq.ltg
+    hostname: oscontroller3.hq.ltg
     short_name: oscontroller3
     type: controller
     host_type: baremetal
     hostgroup: Controller_Network
-    mac_address: "11:23:45:67:89:AE"
-    bmc_ip: 10.4.17.5
-    bmc_mac: "11:23:45:67:88:AE"
-    bmc_user: root
+    mac_address: "00:22:64:03:DF:E4"
+    bmc_ip: 192.168.3.206
+    bmc_mac: "00:22:64:03:B7:28"
+    bmc_user: Administrator
     bmc_pass: root
     private_ip: controller3_private
-    private_mac: "11:23:45:67:87:AE"
+    private_mac: "00:22:64:03:EF:56"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
     groups:

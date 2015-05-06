@@ -38,7 +38,7 @@ A simple bash script (deploy.sh) will provision out a Foreman/QuickStack VM Serv
 
 ##Execution Instructions
 
-* On your JumpHost, clone 'git clone https://github.com/ibravo/bgs_vagrant.git' to as root to /root/
+* On your JumpHost, clone 'git clone https://github.com/trozet/bgs_vagrant.git' to as root to /root/
 
 * Edit opnvf_ksgen_settings.yml → “nodes” section:
 

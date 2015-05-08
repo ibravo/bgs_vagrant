@@ -159,7 +159,7 @@ done
 if ! yum repolist | grep "epel/"; then
   if ! rpm -Uvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm; then
     printf '%s\n' 'deploy.sh: Unable to configure EPEL repo' >&2
-    exit 1
+   # exit 1
   fi
 else
   printf '%s\n' 'deploy.sh: Skipping EPEL repo as it is already configured.'

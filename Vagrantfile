@@ -32,13 +32,13 @@ Vagrant.configure(2) do |config|
   # Bridged networks make the machine appear as another physical device on
   # your network.
   # config.vm.network "public_network"
-  config.vm.network "public_network", ip: "10.4.1.2", bridge: 'eth_replace0'
-  config.vm.network "public_network", ip: "10.4.9.2", bridge: 'eth_replace1'
-  config.vm.network "public_network", ip: "10.2.84.2", bridge: 'eth_replace2'
-  config.vm.network "public_network", ip: "10.3.84.2", bridge: 'eth_replace3'
+  config.vm.network "public_network", ip: "192.168.3.161", bridge: 'enp20s4', netmask: "255.255.255.0"
+  config.vm.network "public_network", ip: "192.168.8.161", bridge: 'enp3s0', netmask: "255.255.255.0"
+  config.vm.network "public_network", ip: "192.168.6.161", bridge: 'enp5s0', netmask: "255.255.255.0"
+
 
   # IP address of your LAN's router
-  default_gw = ""
+  default_gw = "192.168.3.1"
   nat_flag = false
 
   # Share an additional folder to the guest VM. The first argument is

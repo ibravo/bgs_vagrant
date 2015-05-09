@@ -2,40 +2,40 @@ global_params:
   admin_email: opnfv@opnfv.com
   ha_flag: "true"
   odl_flag: "true"
-  private_network:
-  storage_network:
+  private_network: 192.168.8.0
+  storage_network: 192.168.8.0
   controllers_hostnames_array: oscontroller1,oscontroller2,oscontroller3
-  controllers_ip_array:
-  amqp_vip:
-  private_subnet:
-  cinder_admin_vip:
-  cinder_private_vip:
-  cinder_public_vip:
-  db_vip:
-  glance_admin_vip:
-  glance_private_vip:
-  glance_public_vip:
-  heat_admin_vip:
-  heat_private_vip:
-  heat_public_vip:
-  heat_cfn_admin_vip:
-  heat_cfn_private_vip:
-  heat_cfn_public_vip:
-  horizon_admin_vip:
-  horizon_private_vip:
-  horizon_public_vip:
-  keystone_admin_vip:
-  keystone_private_vip:
-  keystone_public_vip:
-  loadbalancer_vip:
-  neutron_admin_vip:
-  neutron_private_vip:
-  neutron_public_vip:
-  nova_admin_vip:
-  nova_private_vip:
-  nova_public_vip:
-network_type: multi_network
-default_gw:
+  controllers_ip_array: 192.168.8.162,192.168.8.163,192.168.8.164
+  amqp_vip: 192.168.8.174
+  private_subnet: 192.168.8.0/24
+  cinder_admin_vip: 192.168.8.175
+  cinder_private_vip: 192.168.8.176
+  cinder_public_vip: 192.168.6.171
+  db_vip: 192.168.8.177
+  glance_admin_vip: 192.168.8.178
+  glance_private_vip: 192.168.8.179
+  glance_public_vip: 192.168.6.172
+  heat_admin_vip: 192.168.8.180
+  heat_private_vip: 192.168.8.181
+  heat_public_vip: 192.168.6.173
+  heat_cfn_admin_vip: 192.168.8.182
+  heat_cfn_private_vip: 192.168.8.183
+  heat_cfn_public_vip: 192.168.6.174
+  horizon_admin_vip: 192.168.8.184
+  horizon_private_vip: 192.168.8.185
+  horizon_public_vip: 192.168.6.175
+  keystone_admin_vip: 192.168.8.186
+  keystone_private_vip: 192.168.8.187
+  keystone_public_vip: 192.168.6.176
+  loadbalancer_vip: 192.168.8.188
+  neutron_admin_vip: 192.168.8.189
+  neutron_private_vip: 192.168.8.190
+  neutron_public_vip: 192.168.6.177
+  nova_admin_vip: 192.168.8.191
+  nova_private_vip: 192.168.8.192
+  nova_public_vip: 192.168.6.178
+network_type: three_network
+default_gw: 192.168.3.1
 foreman:
   seed_values:
     - { name: heat_cfn, oldvalue: true, newvalue: false }
@@ -101,7 +101,7 @@ nodes:
     bmc_ip: 192.168.3.207
     bmc_mac: "00:21:5A:43:AE:F8"
     bmc_user: Administrator
-    bmc_pass: root
+    bmc_pass: L3gfederal
     ansible_ssh_pass: "Op3nStack"
     admin_password: ""
     groups:
@@ -121,8 +121,8 @@ nodes:
     bmc_ip: 192.168.3.204
     bmc_mac: "00:24:81:FD:1A:14"
     bmc_user: Administrator
-    bmc_pass: root
-    private_ip: controller1_private
+    bmc_pass: L3gfederal
+    private_ip: 192.168.8.162
     private_mac: "00:24:81:FC:5D:34"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
@@ -143,8 +143,8 @@ nodes:
     bmc_ip: 192.168.3.205
     bmc_mac: "00:26:55:19:C2:8A"
     bmc_user: Administrator
-    bmc_pass: root
-    private_ip: controller2_private
+    bmc_pass: L3gfederal
+    private_ip: 192.168.8.163
     private_mac: "00:26:55:1A:DB:10"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
@@ -165,8 +165,8 @@ nodes:
     bmc_ip: 192.168.3.206
     bmc_mac: "00:22:64:03:B7:28"
     bmc_user: Administrator
-    bmc_pass: root
-    private_ip: controller3_private
+    bmc_pass: L3gfederal
+    private_ip: 192.168.8.164
     private_mac: "00:22:64:03:EF:56"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
@@ -321,7 +321,7 @@ provisioner:
     type: nova
     name: external
   skip: skip_provision
-  foreman_url: https://10.2.84.2/api/v2/
+  foreman_url: https://192.168.6.161/api/v2/
   password: octopus
   type: foreman
 workaround_nova_compute_fix: false

@@ -156,6 +156,7 @@ done
 /sbin/setenforce 0
 
 ##install EPEL
+echo Installing EPEL
 if ! yum repolist | grep "epel/"; then
   if ! rpm -Uvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm; then
     printf '%s\n' 'deploy.sh: Unable to configure EPEL repo' >&2
@@ -166,12 +167,14 @@ else
 fi
 
 ##install dependencies
+echo Installing dependencies
 if ! yum -y install binutils gcc make patch libgomp glibc-headers glibc-devel kernel-headers kernel-devel dkms; then
   printf '%s\n' 'deploy.sh: Unable to install depdency packages' >&2
   exit 1
 fi
 
 ##install VirtualBox repo
+echo installing VB repo
 if cat /etc/*release | grep -i "Fedora release"; then
   vboxurl=http://download.virtualbox.org/virtualbox/rpm/fedora/\$releasever/\$basearch
 else
@@ -208,6 +211,7 @@ else
 fi
 
 ##install Ansible
+echo installing Ansible
 if ! yum list installed | grep -i ansible; then
   if ! yum -y install ansible; then
     printf '%s\n' 'deploy.sh: Unable to install Ansible package' >&2
@@ -216,6 +220,7 @@ if ! yum list installed | grep -i ansible; then
 fi
 
 ##install Vagrant
+echo installing Vagrant
 if ! rpm -qa | grep vagrant; then
   if ! rpm -Uvh https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.rpm; then
     printf '%s\n' 'deploy.sh: Unable to install vagrant package' >&2
@@ -226,6 +231,7 @@ else
 fi
 
 ##add centos 7 box to vagrant
+echo adding C7 to vagrant
 if ! vagrant box list | grep chef/centos-7.0; then
   if ! vagrant box add chef/centos-7.0 --provider virtualbox; then
     printf '%s\n' 'deploy.sh: Unable to download centos7 box for Vagrant' >&2
@@ -244,13 +250,16 @@ else
   printf '%s\n' 'deploy.sh: Skipping Vagrant plugin as centos7 workaround is already installed.'
 fi
 
+echo now in the temp directory
 cd /tmp/
 
 ##remove bgs vagrant incase it wasn't cleaned up
+echo remove the old files
 rm -rf /tmp/bgs_vagrant
 
 ##clone bgs vagrant
 ##will change this to be opnfv repo when commit is done
+echo git clone  ibravo/bgs_vagrant
 if ! git clone https://github.com/ibravo/bgs_vagrant.git; then
   printf '%s\n' 'deploy.sh: Unable to clone vagrant repo' >&2
   exit 1
@@ -330,6 +339,7 @@ if route | grep default; then
            0)
              echo "${blue}Default Gateway Detected on Admin Interface!${reset}"
              sed -i 's/^.*default_gw =.*$/  default_gw = '\""$host_default_gw"\"'/' Vagrantfile
+             echo "Set gateway to $host_default_gw"
              node_default_gw=$host_default_gw
              ;;
            1)
@@ -340,6 +350,7 @@ if route | grep default; then
            2)
              echo "${blue}Default Gateway Detected on Public Interface!${reset}"
              sed -i 's/^.*default_gw =.*$/  default_gw = '\""$host_default_gw"\"'/' Vagrantfile
+             echo "Set gateway to $host_default_gw"
              echo "${blue}Will setup NAT from Admin -> Public Network on VM!${reset}"
              sed -i 's/^.*nat_flag =.*$/  nat_flag = true/' Vagrantfile
              echo "${blue}Setting node gateway to be VM Admin IP${reset}"
@@ -413,6 +424,7 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
        exit 1
     fi
     sed -i 's/'"$node$type"'/'"$next_private_ip"'/g' opnfv_ksgen_settings.yml
+    echo "New IP $next_private_ip"
     controller_ip_array=$controller_ip_array$next_private_ip,
   done
 

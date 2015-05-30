@@ -1,5 +1,5 @@
 global_params:
-  admin_email: opnfv@opnfv.com
+  admin_email: ibravo@ltgfederal.com
   ha_flag: "true"
   odl_flag: "true"
   private_network: 192.168.8.0
@@ -91,8 +91,8 @@ workaround_vif_plugging: false
 openstack_packstack_rpm: http://REPLACE_ME/brewroot/packages/openstack-puppet-modules/2013.2/9.el6ost/noarch/openstack-puppet-modules-2013.2-9.el6ost.noarch.rpm
 nodes:
   compute:
-    name: oscompute11.openfv.com
-    hostname: oscompute11.openfv.com
+    name: oscompute11.hq.ltg
+    hostname: oscompute11.hq.ltg
     short_name: oscompute11
     type: compute
     host_type: baremetal
@@ -111,8 +111,8 @@ nodes:
     - rdo
     - neutron
   controller1:
-    name: oscontroller1.openfv.com
-    hostname: oscontroller1.openfv.com
+    name: oscontroller1.hq.ltg
+    hostname: oscontroller1.hq.ltg
     short_name: oscontroller1
     type: controller
     host_type: baremetal
@@ -133,8 +133,8 @@ nodes:
     - rdo
     - neutron
   controller2:
-    name: oscontroller2.openfv.com
-    hostname: oscontroller2.openfv.com
+    name: oscontroller2.hq.ltg
+    hostname: oscontroller2.hq.ltg
     short_name: oscontroller2
     type: controller
     host_type: baremetal
@@ -155,8 +155,8 @@ nodes:
     - rdo
     - neutron
   controller3:
-    name: oscontroller3.openfv.com
-    hostname: oscontroller3.openfv.com
+    name: oscontroller3.hq.ltg
+    hostname: oscontroller3.hq.ltg
     short_name: oscontroller3
     type: controller
     host_type: baremetal

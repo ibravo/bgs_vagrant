@@ -117,7 +117,7 @@ nodes:
     type: controller
     host_type: baremetal
     hostgroup: Controller_Network_ODL
-    mac_address: "00:24:81:FC:5D:32"
+    mac_address: "00-10-18-25-47-e8"
     bmc_ip: 192.168.3.204
     bmc_mac: "00:24:81:FD:1A:14"
     bmc_user: Administrator
@@ -139,7 +139,7 @@ nodes:
     type: controller
     host_type: baremetal
     hostgroup: Controller_Network
-    mac_address: "00:26:55:1A:DB:0E"
+    mac_address: "00-10-18-25-40-26"
     bmc_ip: 192.168.3.205
     bmc_mac: "00:26:55:19:C2:8A"
     bmc_user: Administrator

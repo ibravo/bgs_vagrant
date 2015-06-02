@@ -5,37 +5,45 @@ global_params:
   private_network: 192.168.8.0
   storage_network: 192.168.8.0
   controllers_hostnames_array: oscontroller1,oscontroller2,oscontroller3
-  controllers_ip_array: 192.168.8.162,192.168.8.163,192.168.8.164
-  amqp_vip: 192.168.8.174
-  private_subnet: 192.168.8.0/24
-  cinder_admin_vip: 192.168.8.175
-  cinder_private_vip: 192.168.8.176
-  cinder_public_vip: 192.168.6.171
-  db_vip: 192.168.8.177
-  glance_admin_vip: 192.168.8.178
-  glance_private_vip: 192.168.8.179
-  glance_public_vip: 192.168.6.172
-  heat_admin_vip: 192.168.8.180
-  heat_private_vip: 192.168.8.181
-  heat_public_vip: 192.168.6.173
-  heat_cfn_admin_vip: 192.168.8.182
-  heat_cfn_private_vip: 192.168.8.183
-  heat_cfn_public_vip: 192.168.6.174
-  horizon_admin_vip: 192.168.8.184
-  horizon_private_vip: 192.168.8.185
-  horizon_public_vip: 192.168.6.175
-  keystone_admin_vip: 192.168.8.186
-  keystone_private_vip: 192.168.8.187
-  keystone_public_vip: 192.168.6.176
-  loadbalancer_vip: 192.168.8.188
-  neutron_admin_vip: 192.168.8.189
-  neutron_private_vip: 192.168.8.190
-  neutron_public_vip: 192.168.6.177
-  nova_admin_vip: 192.168.8.191
-  nova_private_vip: 192.168.8.192
-  nova_public_vip: 192.168.6.178
-network_type: three_network
-default_gw: 192.168.3.1
+  controllers_ip_array:
+  amqp_vip:
+  private_subnet:
+  cinder_admin_vip:
+  cinder_private_vip:
+  cinder_public_vip:
+  db_vip:
+  glance_admin_vip:
+  glance_private_vip:
+  glance_public_vip:
+  heat_admin_vip:
+  heat_private_vip:
+  heat_public_vip:
+  heat_cfn_admin_vip:
+  heat_cfn_private_vip:
+  heat_cfn_public_vip:
+  horizon_admin_vip:
+  horizon_private_vip:
+  horizon_public_vip:
+  keystone_admin_vip:
+  keystone_private_vip:
+  keystone_public_vip:
+  loadbalancer_vip:
+  neutron_admin_vip:
+  neutron_private_vip:
+  neutron_public_vip:
+  nova_admin_vip:
+  nova_private_vip:
+  nova_public_vip:
+  external_network_flag: "true"
+  public_gateway:
+  public_dns:
+  public_network:
+  public_subnet:
+  public_allocation_start:
+  public_allocation_end:
+  deployment_type:
+network_type: multi_network
+default_gw:
 foreman:
   seed_values:
     - { name: heat_cfn, oldvalue: true, newvalue: false }
@@ -122,7 +130,7 @@ nodes:
     bmc_mac: "00:24:81:FD:1A:14"
     bmc_user: Administrator
     bmc_pass: L3gfederal
-    private_ip: 192.168.8.162
+    private_ip: controller1_private
     private_mac: "00:24:81:FC:5D:34"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
@@ -144,7 +152,7 @@ nodes:
     bmc_mac: "00:26:55:19:C2:8A"
     bmc_user: Administrator
     bmc_pass: L3gfederal
-    private_ip: 192.168.8.163
+    private_ip: controller2_private
     private_mac: "00:26:55:1A:DB:10"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
@@ -166,7 +174,7 @@ nodes:
     bmc_mac: "00:22:64:03:B7:28"
     bmc_user: Administrator
     bmc_pass: L3gfederal
-    private_ip: 192.168.8.164
+    private_ip: controller3_private
     private_mac: "00:22:64:03:EF:56"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"

@@ -34,6 +34,7 @@ display_usage() {
   echo -e "\nUsage:\n$0 [arguments] \n"
   echo -e "\n   -no_parse : No variable parsing into config. Flag. \n"
   echo -e "\n   -base_config : Full path of settings file to parse. Optional.  Will provide a new base settings file rather than the default.  Example:  -base_config /opt/myinventory.yml \n"
+  echo -e "\n   -virtual : Node virtualization instead of baremetal. Flag. \n"
 }
 
 ##find ip of interface
@@ -49,6 +50,15 @@ function find_subnet {
   IFS=. read -r m1 m2 m3 m4 <<< "$2"
   printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))"
 }
+
+##increments subnet by a value
+##params: ip, value
+##assumes low value
+function increment_subnet {
+  IFS=. read -r i1 i2 i3 i4 <<< "$1"
+  printf "%d.%d.%d.%d\n" "$i1" "$i2" "$i3" "$((i4 | $2))"
+}
+
 
 ##finds netmask of interface
 ##params: interface
@@ -120,6 +130,25 @@ function increment_ip {
   echo $baseaddr.$lsv
 }
 
+##translates yaml into variables
+##params: filename, prefix (ex. "config_")
+##usage: parse_yaml opnfv_ksgen_settings.yml "config_"
+parse_yaml() {
+   local prefix=$2
+   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+   sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+   awk -F$fs '{
+      indent = length($1)/2;
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+      }
+   }'
+}
+
 ##END FUNCTIONS
 
 if [[ ( $1 == "--help") ||  $1 == "-h" ]]; then
@@ -143,14 +172,16 @@ do
                 no_parse="TRUE"
                 shift 1
             ;;
+        -virtual)
+                virtual="TRUE"
+                shift 1
+            ;;
         *)
                 display_usage
                 exit 1
             ;;
 esac
 done
-
-
 
 ##disable selinux
 /sbin/setenforce 0
@@ -299,6 +330,10 @@ for interface in ${output}; do
     private_subnet_mask=$subnet_mask
     private_short_subnet_mask=$(find_short_netmask $interface)
   fi
+  if [ "$if_counter" -eq 2 ]; then
+    public_subnet_mask=$subnet_mask
+    public_short_subnet_mask=$(find_short_netmask $interface)
+  fi
   if [ "$if_counter" -eq 3 ]; then
     storage_subnet_mask=$subnet_mask
   fi
@@ -355,6 +390,7 @@ if route | grep default; then
              sed -i 's/^.*nat_flag =.*$/  nat_flag = true/' Vagrantfile
              echo "${blue}Setting node gateway to be VM Admin IP${reset}"
              node_default_gw=${interface_ip_arr[0]}
+             public_gateway=$default_gw
              ;;
            3)
              echo "${red}Default Gateway Detected on Storage Interface!${reset}"
@@ -413,6 +449,8 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
     sed -i 's/^.*network_type:.*$/network_type: three_network/' opnfv_ksgen_settings.yml
   fi
 
+  sed -i 's/^.*deployment_type:.*$/  deployment_type: '"$deployment_type"'/' opnfv_ksgen_settings.yml
+
   ##get ip addresses for private network on controllers to make dhcp entries
   ##required for controllers_ip_array global param
   next_private_ip=${interface_ip_arr[1]}
@@ -460,6 +498,9 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
     fi
   done
 
+  ##replace public_network param
+  public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
+  sed -i 's/^.*public_network:.*$/  public_network:'" $public_subnet"'/' opnfv_ksgen_settings.yml
   ##replace private_network param
   private_subnet=$(find_subnet $next_private_ip $private_subnet_mask)
   sed -i 's/^.*private_network:.*$/  private_network:'" $private_subnet"'/' opnfv_ksgen_settings.yml
@@ -472,9 +513,35 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
     sed -i 's/^.*storage_network:.*$/  storage_network:'" $storage_subnet"'/' opnfv_ksgen_settings.yml
   fi
 
+  ##replace public_subnet param
+  public_subnet=$public_subnet'\'$public_short_subnet_mask
+  sed -i 's/^.*public_subnet:.*$/  public_subnet:'" $public_subnet"'/' opnfv_ksgen_settings.yml
   ##replace private_subnet param
   private_subnet=$private_subnet'\'$private_short_subnet_mask
   sed -i 's/^.*private_subnet:.*$/  private_subnet:'" $private_subnet"'/' opnfv_ksgen_settings.yml
+
+  ##replace public_dns param to be foreman server
+  sed -i 's/^.*public_dns:.*$/  public_dns: '${interface_ip_arr[2]}'/' opnfv_ksgen_settings.yml
+
+  ##replace public_gateway
+  if [ -z "$public_gateway" ]; then
+    ##if unset then we assume its the first IP in the public subnet
+    public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
+    public_gateway=$(increment_subnet $public_subnet 1)
+  fi
+  sed -i 's/^.*public_gateway:.*$/  public_gateway:'" $public_gateway"'/' opnfv_ksgen_settings.yml
+
+  ##we have to define an allocation range of the public subnet to give
+  ##to neutron to use as floating IPs
+  ##we should control this subnet, so this range should work .150-200
+  ##but generally this is a bad idea and we are assuming at least a /24 subnet here
+  public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
+  public_allocation_start=$(increment_subnet $public_subnet 150)
+  public_allocation_end=$(increment_subnet $public_subnet 200)
+
+  sed -i 's/^.*public_allocation_start:.*$/  public_allocation_start:'" $public_allocation_start"'/' opnfv_ksgen_settings.yml
+  sed -i 's/^.*public_allocation_end:.*$/  public_allocation_end:'" $public_allocation_end"'/' opnfv_ksgen_settings.yml
+
 else
   printf '%s\n' 'deploy.sh: Unknown network type: $deployment_type' >&2
   exit 1
@@ -484,12 +551,163 @@ echo "${blue}Parameters Complete.  Settings have been set for Foreman. ${reset}"
 
 fi
 
+if [ $virtual ]; then
+  echo "${blue} Virtual flag detected, setting Khaleesi playbook to be opnfv-vm.yml ${reset}"
+  sed -i 's/opnfv.yml/opnfv-vm.yml/' bootstrap.sh
+fi
+
 echo "${blue}Starting Vagrant! ${reset}"
 
 ##stand up vagrant
 if ! vagrant up; then
   printf '%s\n' 'deploy.sh: Unable to start vagrant' >&2
   exit 1
+else
+  echo "${blue}Foreman VM is up! ${reset}"
 fi
 
+if [ $virtual ]; then
 
+##Bring up VM nodes
+echo "${blue}Setting VMs up... ${reset}"
+nodes=`sed -nr '/nodes:/{:start /workaround/!{N;b start};//p}' opnfv_ksgen_settings.yml | sed -n '/^  [A-Za-z0-9]\+:$/p' | sed 's/\s*//g' | sed 's/://g'`
+##due to ODL Helium bug of OVS connecting to ODL too early, we need controllers to install first
+##this is fix kind of assumes more than I would like to, but for now it should be OK as we always have
+##3 static controllers
+compute_nodes=`echo $nodes | tr " " "\n" | grep -v controller | tr "\n" " "`
+controller_nodes=`echo $nodes | tr " " "\n" | grep controller | tr "\n" " "`
+nodes=${controller_nodes}${compute_nodes}
+
+for node in ${nodes}; do
+  cd /tmp
+
+  ##remove VM nodes incase it wasn't cleaned up
+  rm -rf /tmp/$node
+
+  ##clone bgs vagrant
+  ##will change this to be opnfv repo when commit is done
+  if ! git clone https://github.com/trozet/bgs_vagrant.git $node; then
+    printf '%s\n' 'deploy.sh: Unable to clone vagrant repo' >&2
+    exit 1
+  fi
+
+  cd $node
+
+  if [ $base_config ]; then
+    if ! cp -f $base_config opnfv_ksgen_settings.yml; then
+      echo "{red}ERROR: Unable to copy $base_config to opnfv_ksgen_settings.yml${reset}"
+      exit 1
+    fi
+  fi
+
+  ##parse yaml into variables
+  eval $(parse_yaml opnfv_ksgen_settings.yml "config_")
+  ##find node type
+  node_type=config_nodes_${node}_type
+  node_type=$(eval echo \$$node_type)
+
+  ##find number of interfaces with ip and substitute in VagrantFile
+  output=`ifconfig | grep -E "^[a-zA-Z0-9]+:"| grep -Ev "lo|tun|virbr|vboxnet" | awk '{print $1}' | sed 's/://'`
+
+  if [ ! "$output" ]; then
+    printf '%s\n' 'deploy.sh: Unable to detect interfaces to bridge to' >&2
+    exit 1
+  fi
+
+
+  if_counter=0
+  for interface in ${output}; do
+
+    if [ "$if_counter" -ge 4 ]; then
+      break
+    fi
+    interface_ip=$(find_ip $interface)
+    if [ ! "$interface_ip" ]; then
+      continue
+    fi
+    case "${if_counter}" in
+           0)
+             mac_string=config_nodes_${node}_mac_address
+             mac_addr=$(eval echo \$$mac_string)
+             mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
+             if [ $mac_addr == "" ]; then
+                 echo "${red} Unable to find mac_address for $node! ${reset}"
+                 exit 1
+             fi
+             ;;
+           1)
+             if [ "$node_type" == "controller" ]; then
+               mac_string=config_nodes_${node}_private_mac
+               mac_addr=$(eval echo \$$mac_string)
+               if [ $mac_addr == "" ]; then
+                 echo "${red} Unable to find private_mac for $node! ${reset}"
+                 exit 1
+               fi
+             else
+               ##generate random mac
+               mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
+             fi
+             mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
+             ;;
+           *)
+             mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
+             mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
+             ;;
+    esac
+    sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "public_network", bridge: '\'"$interface"\'', :mac => '\""$mac_addr"\"'/' Vagrantfile
+    ((if_counter++))
+  done
+
+  ##now remove interface config in Vagrantfile for 1 node
+  ##if 1, 3, or 4 interfaces set deployment type
+  ##if 2 interfaces remove 2nd interface and set deployment type
+  if [ "$if_counter" == 1 ]; then
+    deployment_type="single_network"
+    remove_vagrant_network eth_replace1
+    remove_vagrant_network eth_replace2
+    remove_vagrant_network eth_replace3
+  elif [ "$if_counter" == 2 ]; then
+    deployment_type="single_network"
+    second_interface=`echo $output | awk '{print $2}'`
+    remove_vagrant_network $second_interface
+    remove_vagrant_network eth_replace2
+  elif [ "$if_counter" == 3 ]; then
+    deployment_type="three_network"
+    remove_vagrant_network eth_replace3
+  else
+    deployment_type="multi_network"
+  fi
+
+  ##modify provisioning to do puppet install, config, and foreman check-in
+  ##substitute host_name and dns_server in the provisioning script
+  host_string=config_nodes_${node}_hostname
+  host_name=$(eval echo \$$host_string)
+  sed -i 's/^host_name=REPLACE/host_name='$host_name'/' vm_nodes_provision.sh
+  ##dns server should be the foreman server
+  sed -i 's/^dns_server=REPLACE/dns_server='${interface_ip_arr[0]}'/' vm_nodes_provision.sh
+
+  ## remove bootstrap and NAT provisioning
+  sed -i '/nat_setup.sh/d' Vagrantfile
+  sed -i 's/bootstrap.sh/vm_nodes_provision.sh/' Vagrantfile
+
+  ## modify default_gw to be node_default_gw
+  sed -i 's/^.*default_gw =.*$/  default_gw = '\""$node_default_gw"\"'/' Vagrantfile
+
+  ## modify VM memory to be 4gig
+  sed -i 's/^.*vb.memory =.*$/     vb.memory = 4096/' Vagrantfile
+
+  echo "${blue}Starting Vagrant Node $node! ${reset}"
+
+  ##stand up vagrant
+  if ! vagrant up; then
+    echo "${red} Unable to start $node ${reset}"
+    exit 1
+  else
+    echo "${blue} $node VM is up! ${reset}"
+  fi
+
+done
+
+ echo "${blue} All VMs are UP! ${reset}"
+
+fi

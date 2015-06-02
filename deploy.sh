@@ -533,11 +533,11 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
 
   ##we have to define an allocation range of the public subnet to give
   ##to neutron to use as floating IPs
-  ##we should control this subnet, so this range should work .150-200
+  ##we should control this subnet, so this range should work .200-205
   ##but generally this is a bad idea and we are assuming at least a /24 subnet here
   public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
-  public_allocation_start=$(increment_subnet $public_subnet 150)
-  public_allocation_end=$(increment_subnet $public_subnet 200)
+  public_allocation_start=$(increment_subnet $public_subnet 200)
+  public_allocation_end=$(increment_subnet $public_subnet 205)
 
   sed -i 's/^.*public_allocation_start:.*$/  public_allocation_start:'" $public_allocation_start"'/' opnfv_ksgen_settings.yml
   sed -i 's/^.*public_allocation_end:.*$/  public_allocation_end:'" $public_allocation_end"'/' opnfv_ksgen_settings.yml
